@@ -1,0 +1,83 @@
+version: "3"
+services:
+  #PHP Service
+  app:
+    image: digitalocean.com/php
+    container_name: quisto-php
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: quisto-php
+      SERVICE_TAGS: dev
+    volumes:
+      - ./:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    working_dir: /var/www
+    networks:
+      - app-network
+
+  #Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: quisto_nginx
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    ports:
+      - "8080:80"
+      - "443:443"
+    networks:
+      - app-network
+
+  #MySQL Service
+  db:
+    image: mysql:5.7.22
+    container_name: quisto-db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "13306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql/
+      - ./docker/mysql/conf/mysql-docker.cnf:/etc/mysql/my.cnf
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - app-network
+
+  testdb:
+    image: mysql:5.7.22
+    container_name: quisto-testdb
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "13308:3306"
+    volumes:
+      - testdbdata:/var/lib/mysql/
+      - ./docker/mysql/conf/mysql-docker.cnf:/etc/mysql/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "test"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_ROOT_HOST: "%"
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
+  testdbdata:
+    driver: local
