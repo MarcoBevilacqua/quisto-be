@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -25,17 +26,33 @@ class ProductsUploadController extends Controller
 
         $header = fgetcsv($file);
 
-        var_dump($header);
-        $users = [];
         while ($row = fgetcsv($file)) {
-            $users[] = array_combine($header, $row);
+            $this->handleRow(array_combine($header, $row));
         }
 
         fclose($file);
 
 
-
         return redirect()->back();
+    }
 
+    private function handleRow(array $row)
+    {
+        if(empty($row['id'])) {
+            //create new product
+            $p = new Product([
+               'name' => $row['name'],
+               'price' => $row['price']
+            ]);
+
+            return $p->save();
+        }
+
+        $p = Product::find($row['id']);
+
+        $p->update([
+            'name'  => $row['name'],
+            'price' => $row['price']
+        ]);
     }
 }
