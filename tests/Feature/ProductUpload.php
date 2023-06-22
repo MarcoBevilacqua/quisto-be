@@ -57,14 +57,12 @@ class ProductUpload extends TestCase
         }
 
         // Act
-        $response = $this->post('/upload-products', []);
+        $this->post('/upload-products', ['products' => $file]);
 
-        var_dump($response);
-
-        // Assert that
+        // Assert that file has been uploaded
         Storage::disk('csv')->assertExists($file->hashName());
 
-        # Check if you have any DB entry against that
+        // Check if you have any DB entry against that
         $this->assertDatabaseCount('products', count($this->csvData));
     }
 }
