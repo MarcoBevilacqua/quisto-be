@@ -54,8 +54,6 @@ class ProductsUploadController extends Controller
 
         fclose($file);
 
-        var_dump(count($jobs));
-
         $this->dispatchJobBatch($jobs);
 
         return redirect()->back();
