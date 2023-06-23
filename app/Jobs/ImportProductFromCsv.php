@@ -31,7 +31,6 @@ class ImportProductFromCsv implements ShouldQueue
      */
     public function handle(): void
     {
-        var_dump($this->rows);
         foreach ($this->rows as $row) {
             if (empty($row['id'])) {
                 //create new product
