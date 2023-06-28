@@ -44,6 +44,16 @@ class ImportProductFromCsv implements ShouldQueue
             } else {
                 $p = Product::find($row['id']);
 
+                if(!$p) {
+                    $p = new Product([
+                        'name' => $row['name'],
+                        'price' => $row['price']
+                    ]);
+
+                    $p->save();
+                    continue;
+                }
+
                 $p->update([
                     'name' => $row['name'],
                     'price' => $row['price']
