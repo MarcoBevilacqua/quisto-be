@@ -1,38 +1,39 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Jobs\ImportProductFromCsv;
 use Illuminate\Bus\Batch;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
+use function response;
 
 class ProductsUploadController extends Controller
 {
 
-    private const CSV_IMPORT_CHUNK = 3;
+    private const CSV_IMPORT_CHUNK = 10;
 
     /**
      * @throws \Throwable
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Foundation\Application|\Illuminate\Http\Response
     {
         $file = $request->file('products');
-        $fileSaved = Storage::disk('csv')
-            ->put('/', $file);
 
-        if(! $fileSaved) {
-            return redirect()->back(Response::HTTP_BAD_REQUEST)
-                ->with('error', "Error during file save");
+        try {
+            Storage::disk('local')
+                ->put('/', $file);
+        } catch (\Exception $exception) {
+            return response($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
         // read file content and save data
         $file = fopen($file->path(), 'r');
 
-        $header = fgetcsv($file);
+        $header = ["id","name","price"];
 
         $rows = [];
         $jobs = [];
@@ -54,9 +55,9 @@ class ProductsUploadController extends Controller
 
         fclose($file);
 
-        $this->dispatchJobBatch($jobs);
+        $batchId = $this->dispatchJobBatch($jobs);
 
-        return redirect()->back();
+        return response(['batchId' => $batchId]);
     }
 
     /**
@@ -66,12 +67,14 @@ class ProductsUploadController extends Controller
     {
         $batch = Bus::batch($chunks)->then(function (Batch $batch) {
             // All jobs completed successfully...
-            echo $batch->id;
         })->catch(function (Batch $batch, \Throwable $e) {
             // First batch job failure detected...
         })->finally(function (Batch $batch) {
             // The batch has finished executing...
-        })->name('csv-product-import')->dispatch();
+        })->name('csv-product-import')
+            // Allow batch to continue executing
+            ->allowFailures()
+            ->dispatch();
 
         return $batch->id;
     }
