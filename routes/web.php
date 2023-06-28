@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\ProductsUploadController;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,12 +15,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-Route::post('/upload-products', [ProductsUploadController::class, 'store']);
-
-Route::get('/batch/{batchId}', function (string $batchId) {
-    return Bus::findBatch($batchId);
 });
 
 
