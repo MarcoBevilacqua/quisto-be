@@ -22,6 +22,6 @@ class NewProductImport implements Importable
 
         $product->save();
 
-        return isset($product->id);
+        return true;
     }
 }

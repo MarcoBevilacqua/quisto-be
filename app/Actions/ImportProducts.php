@@ -18,7 +18,7 @@ class ImportProducts
     /**
      * the number of rows a job should process
      */
-    private const CSV_IMPORT_CHUNK = 100;
+    private const CSV_IMPORT_CHUNK = 5000;
 
     /**
      * the column headers

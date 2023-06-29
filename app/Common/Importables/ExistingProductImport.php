@@ -15,7 +15,6 @@ class ExistingProductImport implements Importable
 
     public function import(): bool
     {
-        var_dump($this->values['id']);
         $product = Product::updateOrCreate(
             ["id"    => $this->values['id']],
                 [
@@ -25,6 +24,7 @@ class ExistingProductImport implements Importable
                 ]
         );
 
-        return isset($product->id);
+        // updateOrCreate performed create
+        return $product->wasRecentlyCreated;
     }
 }
