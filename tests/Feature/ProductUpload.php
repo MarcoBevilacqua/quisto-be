@@ -45,7 +45,7 @@ class ProductUpload extends TestCase
         $file = $this->getFixtures($file, 'new_products');
 
         // Act
-        $this->post('/upload-products', ['products' => $file]);
+        $this->post('/api/csv/import', ['products' => $file]);
 
         // Assert that file has been uploaded
         Storage::disk('csv')->assertExists($file->hashName());
@@ -63,7 +63,7 @@ class ProductUpload extends TestCase
         $this->assertDatabaseCount('products', 0);
 
         // Act
-        $this->post('/upload-products', ['products' => $file]);
+        $this->post('/api/csv/import', ['products' => $file]);
 
         // Check if you have any DB entry against that
         $this->assertDatabaseCount('products', 3);
@@ -88,7 +88,7 @@ class ProductUpload extends TestCase
         $this->assertDatabaseCount('products', 1);
 
         // Act
-        $this->post('/upload-products', ['products' => $file]);
+        $this->post('/api/csv/import', ['products' => $file]);
 
         // Check if database count has changed
         $this->assertDatabaseCount('products', 1);

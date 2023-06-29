@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CsvUploadRequest;
 use App\Jobs\ImportProductFromCsv;
 use Illuminate\Bus\Batch;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,13 +21,13 @@ class ProductsUploadController extends Controller
     /**
      * @throws \Throwable
      */
-    public function store(Request $request): \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Foundation\Application|\Illuminate\Http\Response
+    public function store(CsvUploadRequest $request): Application|ResponseFactory|\Illuminate\Foundation\Application|\Illuminate\Http\Response
     {
+        $request->validate($request->rules());
         $file = $request->file('products');
 
         try {
-            Storage::disk('local')
-                ->put('/', $file);
+            Storage::disk('local')->put('/', $file);
         } catch (\Exception $exception) {
             return response($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -35,10 +37,13 @@ class ProductsUploadController extends Controller
 
         $header = ["id","name","price"];
 
+        fgetcsv($file, 1000);
+
         $rows = [];
         $jobs = [];
         $rowCount = 0;
         while ($row = fgetcsv($file)) {
+
             $rowCount++;
             $rows[] = array_combine($header, $row);
             if($rowCount === self::CSV_IMPORT_CHUNK) {
