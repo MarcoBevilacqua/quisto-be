@@ -22,7 +22,8 @@ class CsvRowImportHelper
      */
     #[Pure] public function getDataFromFile(array $rows): ImportProductFromCsv
     {
-        return new ImportProductFromCsv($this->rowsToImportable($rows));
+        $importableItems = $this->rowsToImportable($rows);
+        return new ImportProductFromCsv($importableItems);
     }
 
     /**
@@ -36,11 +37,12 @@ class CsvRowImportHelper
         $importable = [];
 
         foreach ($rows as $row) {
-            $importable[] = (trim($row['id']) === "") ?
-                // new product
-                new NewProductImport($row) :
-                // existing product
-                new ExistingProductImport($row);
+
+            $trimmedID = trim($row['id']);
+
+            $importable[] = ($trimmedID !== "") ?
+                 new ExistingProductImport($row) :
+                new NewProductImport($row);
             }
 
         return $importable;

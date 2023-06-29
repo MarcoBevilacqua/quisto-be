@@ -17,14 +17,21 @@ class ExistingProductImport implements Importable
     {
         $product = Product::updateOrCreate(
             ["id"    => $this->values['id']],
-                [
-                    "id"    => $this->values['id'],
-                    "name"  => $this->values['name'],
-                    "price" => $this->values['price']
-                ]
+            [
+                "name"  => $this->values['name'],
+                "price" => $this->values['price']
+            ]
         );
 
-        // updateOrCreate performed create
-        return $product->wasRecentlyCreated;
+        if(!$product->wasRecentlyCreated && $product->wasChanged()){
+            return false;
+        }
+
+        if(!$product->wasRecentlyCreated && !$product->wasChanged()){
+
+            return false;
+        }
+
+        return true;
     }
 }
