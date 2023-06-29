@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\Product;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,33 +31,7 @@ class ImportProductFromCsv implements ShouldQueue
     public function handle(): void
     {
         foreach ($this->rows as $row) {
-            if (empty($row['id'])) {
-                //create new product
-                $p = new Product([
-                    'name' => $row['name'],
-                    'price' => $row['price']
-                ]);
-
-                $p->save();
-
-            } else {
-                $p = Product::find($row['id']);
-
-                if(!$p) {
-                    $p = new Product([
-                        'name' => $row['name'],
-                        'price' => $row['price']
-                    ]);
-
-                    $p->save();
-                    continue;
-                }
-
-                $p->update([
-                    'name' => $row['name'],
-                    'price' => $row['price']
-                ]);
-            }
+            $row->import();
         }
     }
 }
